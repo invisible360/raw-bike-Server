@@ -20,6 +20,7 @@ async function run() {
     try {
         const bikeCollections = client.db('rawBike').collection('bike');
         const buyerCollection = client.db('rawBike').collection('buyers');
+        const sellerCollection = client.db('rawBike').collection('sellers');
 
         app.get('/bikes', async (req, res) => {
             const name = req.query.name;
@@ -31,6 +32,12 @@ async function run() {
         app.post('/buyers', async (req, res) => {
             const buyers = req.body;
             const result = await buyerCollection.insertOne(buyers);
+            res.send(result);
+        });
+
+        app.post('/sellers', async (req, res) => {
+            const sellers = req.body;
+            const result = await sellerCollection.insertOne(sellers);
             res.send(result);
         });
 
