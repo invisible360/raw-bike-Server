@@ -24,9 +24,9 @@ async function run() {
 
         app.get('/bikes', async (req, res) => {
             const name = req.query.name;
-            const query = {categoryName: name};
+            const query = { categoryName: name };
             const categoryName = await bikeCollections.find(query).toArray();
-            res.send (categoryName);
+            res.send(categoryName);
         })
 
         app.post('/buyers', async (req, res) => {
@@ -34,11 +34,22 @@ async function run() {
             const result = await buyerCollection.insertOne(buyers);
             res.send(result);
         });
+        app.get('/buyers', async (req, res) => {
+            const query = {};
+            const buyers = await buyerCollection.find(query).toArray();
+            res.send(buyers);
+        });
 
         app.post('/sellers', async (req, res) => {
             const sellers = req.body;
             const result = await sellerCollection.insertOne(sellers);
             res.send(result);
+        });
+
+        app.get('/sellers', async (req, res) => {
+            const query = {};
+            const sellers = await sellerCollection.find(query).toArray();
+            res.send(sellers);
         });
 
     }
