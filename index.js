@@ -21,6 +21,7 @@ async function run() {
         const bikeCollections = client.db('rawBike').collection('bike');
         const buyerCollection = client.db('rawBike').collection('buyers');
         const sellerCollection = client.db('rawBike').collection('sellers');
+        const bookingsCollection = client.db('rawBike').collection('bookings');
 
         app.get('/bikes', async (req, res) => {
             const name = req.query.name;
@@ -59,6 +60,27 @@ async function run() {
             const seller = await sellerCollection.findOne(query);
             res.send({ buyer, seller })
         })
+
+        app.post('/bookings', async (req, res) => {
+            const booking = req.body;
+            // console.log(booking);
+            const query = {
+                productName: booking.productName,
+                buyerEmail: booking.buyerEmail
+
+            }
+
+            const alreadyBooked = await bookingsCollection.find(query).toArray();
+
+            if (alreadyBooked.length) {
+                const message = `You already book ${booking.productName}`
+                return res.send({ acknowledged: false, message })
+            }
+
+            const result = await bookingsCollection.insertOne(booking);
+            res.send(result);
+        });
+
 
     }
     finally {
