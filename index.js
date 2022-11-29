@@ -52,6 +52,14 @@ async function run() {
             res.send(sellers);
         });
 
+        app.get('/users', async (req, res) => {
+            const usersEmail = req.query.users;
+            const query = { email: usersEmail };
+            const buyer = await buyerCollection.findOne(query);
+            const seller = await sellerCollection.findOne(query);
+            res.send({ buyer, seller })
+        })
+
     }
     finally {
 
