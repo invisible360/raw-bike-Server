@@ -24,6 +24,8 @@ async function run() {
         const sellerCollection = client.db('rawBike').collection('sellers');
         const bookingsCollection = client.db('rawBike').collection('bookings');
         const paymentsCollection = client.db('rawBike').collection('payments');
+        const productCollection = client.db('rawBike').collection('products');
+        const advertiseCollection = client.db('rawBike').collection('advertise');
 
         app.get('/bikes', async (req, res) => {
             const name = req.query.name;
@@ -135,6 +137,60 @@ async function run() {
             }
             const updatedResult = await bookingsCollection.updateOne(filter, updatedDoc)
             res.send(result);
+        })
+
+        app.post('/products', async (req, res) => {
+            const doctor = req.body;
+            const result = await productCollection.insertOne(doctor);
+            res.send(result);
+        });
+
+        app.get('/products', async (req, res) => {
+            const email = req.query.email;
+            const query = { sellerEmail: email }
+            const sellerProducts = await productCollection.find(query).toArray();
+            res.send(sellerProducts)
+        })
+
+        app.post('/advertiseProducts', async (req, res) => {
+            const advertiseProducts = req.body;
+            const result = await advertiseCollection.insertOne(advertiseProducts);
+            res.send(result);
+        })
+
+        app.put('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) }
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    status: 'advertised'
+                }
+            }
+            const result = await productCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        });
+
+        app.delete('/productsAndadvertise/:id', async (req, res) => {
+            const id = req.params.id;
+            const filterProduct = {
+                _id: ObjectId(id)
+
+            };
+            const filterAdvertise = {
+                id: id
+            }
+            const resultProduct = await productCollection.deleteOne(filterProduct);
+            const resultAdvertise = await advertiseCollection.deleteOne(filterAdvertise);
+            res.send({ resultProduct, resultAdvertise })
+        })
+
+        app.get('/advertisements/:email', async (req, res) => {
+            const email = req.params.email;
+            // console.log(email);
+            const query = { sellerEmail: email }
+            const advertisedProducts = await advertiseCollection.find(query).toArray();
+            res.send(advertisedProducts)
         })
 
 
