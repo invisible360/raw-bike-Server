@@ -45,6 +45,14 @@ async function run() {
             res.send(buyers);
         });
 
+        app.delete('/buyer/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await buyerCollection.deleteOne(filter);
+            res.send(result)
+
+        })
+
         app.post('/sellers', async (req, res) => {
             const sellers = req.body;
             const result = await sellerCollection.insertOne(sellers);
@@ -63,6 +71,12 @@ async function run() {
             const buyer = await buyerCollection.findOne(query);
             const seller = await sellerCollection.findOne(query);
             res.send({ buyer, seller })
+        })
+        app.get('/allUsers', async (req, res) => {
+            const query = {};
+            const buyer = await buyerCollection.find(query).toArray();
+            const seller = await sellerCollection.find(query).toArray();
+            res.send(buyer, ...seller)
         })
 
         app.post('/bookings', async (req, res) => {
