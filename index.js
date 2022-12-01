@@ -26,6 +26,8 @@ async function run() {
         const paymentsCollection = client.db('rawBike').collection('payments');
         const productCollection = client.db('rawBike').collection('products');
         const advertiseCollection = client.db('rawBike').collection('advertise');
+        const adminCollection = client.db('rawBike').collection('admin');
+        const bikeCategoriesCollection = client.db('rawBike').collection('bikeCategories');
 
         app.get('/bikes', async (req, res) => {
             const name = req.query.name;
@@ -44,11 +46,24 @@ async function run() {
             const buyers = await buyerCollection.find(query).toArray();
             res.send(buyers);
         });
+        app.get('/buyers/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const buyer = await buyerCollection.findOne(query);
+            res.send(buyer);
+        });
 
         app.delete('/buyer/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const result = await buyerCollection.deleteOne(filter);
+            res.send(result)
+
+        })
+        app.delete('/seller/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await sellerCollection.deleteOne(filter);
             res.send(result)
 
         })
@@ -58,6 +73,22 @@ async function run() {
             const result = await sellerCollection.insertOne(sellers);
             res.send(result);
         });
+        app.post('/admin', async (req, res) => {
+            const admin = req.body;
+            const result = await adminCollection.insertOne(admin);
+            res.send(result);
+        });
+        app.get('/admin', async (req, res) => {
+            const query = {};
+            const adminList = await adminCollection.find(query).toArray();
+            res.send(adminList);
+        });
+        app.get('/admin/:email', async (req, res) => {
+            const adminEmail = req.params.email
+            const query = { email: adminEmail };
+            const adminList = await adminCollection.find(query).toArray();
+            res.send(adminList);
+        });
 
         app.get('/sellers', async (req, res) => {
             const query = {};
@@ -66,17 +97,11 @@ async function run() {
         });
 
         app.get('/users', async (req, res) => {
-            const usersEmail = req.query.users;
+            const usersEmail = req.query.users
             const query = { email: usersEmail };
             const buyer = await buyerCollection.findOne(query);
             const seller = await sellerCollection.findOne(query);
             res.send({ buyer, seller })
-        })
-        app.get('/allUsers', async (req, res) => {
-            const query = {};
-            const buyer = await buyerCollection.find(query).toArray();
-            const seller = await sellerCollection.find(query).toArray();
-            res.send(buyer, ...seller)
         })
 
         app.post('/bookings', async (req, res) => {
@@ -111,6 +136,13 @@ async function run() {
             // console.log(id);
             const filter = { _id: ObjectId(id) };
             const result = await bookingsCollection.deleteOne(filter);
+            res.send(result)
+        })
+        app.delete('/bookings', async (req, res) => {
+            const email = req.query.email;
+            console.log(email);
+            const filter = { buyerEmail: email };
+            const result = await bookingsCollection.deleteMany(filter);
             res.send(result)
         })
 
@@ -166,6 +198,21 @@ async function run() {
             res.send(sellerProducts)
         })
 
+        app.get('/catProducts/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { category: id }
+            const categoryProducts = await advertiseCollection.find(query).toArray();
+            res.send(categoryProducts)
+        })
+        app.delete('/products', async (req, res) => {
+            const email = req.query.email;
+            // console.log(email);
+            const filter = { sellerEmail: email };
+            const remainingProducts = await productCollection.deleteMany(filter);
+            const remainingAdvertisements = await advertiseCollection.deleteMany(filter);
+            res.send({ remainingProducts, remainingAdvertisements })
+        })
+
         app.post('/advertiseProducts', async (req, res) => {
             const advertiseProducts = req.body;
             const result = await advertiseCollection.insertOne(advertiseProducts);
@@ -184,6 +231,23 @@ async function run() {
             const result = await productCollection.updateOne(filter, updatedDoc, options);
             res.send(result);
         });
+        app.put('/sellers/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) }
+            const advertiseFilter = { sellerId: id }
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    isVerified: true
+                }
+            }
+            const result = await sellerCollection.updateOne(filter, updatedDoc, options);
+            const advertiseResult = await advertiseCollection.updateMany(advertiseFilter, updatedDoc, options);
+
+            res.send({ result, advertiseResult });
+        });
+
+
 
         app.delete('/productsAndadvertise/:id', async (req, res) => {
             const id = req.params.id;
@@ -205,6 +269,13 @@ async function run() {
             const query = { sellerEmail: email }
             const advertisedProducts = await advertiseCollection.find(query).toArray();
             res.send(advertisedProducts)
+        })
+
+        app.get('/bikeCategories', async (req, res) => {
+            const query = {}
+            const categories = await bikeCategoriesCollection.find(query).toArray();
+            res.send(categories);
+
         })
 
 
